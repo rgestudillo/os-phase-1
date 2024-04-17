@@ -2,7 +2,7 @@
   "name": "filepad",
   "version": "0.1.0",
   "private": true,
-  "homepage": "/filepad",
+  "homepage": "/",
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
