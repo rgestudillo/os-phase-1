@@ -172,7 +172,7 @@ export function MonacoEditorWrapper({
     <div className={`${className || ""} ${style.container}`}>
       {isFileReady && (
         <>
-          <div className={`${style.title}`}>
+          <div className={`${style.rowWrapper} `}>
             <button
               onClick={handleSave}
               className={`${style.saveButton}`}

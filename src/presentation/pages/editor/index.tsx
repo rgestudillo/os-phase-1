@@ -28,6 +28,11 @@ export function EditorPage() {
   }
 
   const [files, setFiles] = useState<NonNullable<TabsProps["items"]>>([
+    {
+      key: "-1",
+      label: "About",
+      children: <AboutAppWrapper />,
+    },
     // {
     //   key: '0',
     //   label: 'NotePad',
@@ -297,17 +302,6 @@ export function EditorPage() {
       {windowWidth >= 800 ? (
         <SubNav title="DEBMAC's Editor" className={style.sideNav}>
           <SideExplorer workspace={folderMetadata} openFile={openFile} />
-          <div>
-            <p>Microphone: {listening ? "on" : "off"}</p>
-            <button onClick={() => SpeechRecognition.startListening()}>
-              Start
-            </button>
-            <button onClick={() => SpeechRecognition.stopListening()}>
-              Stop
-            </button>
-            <button onClick={() => resetTranscript()}>Reset</button>
-            <p>{transcript}</p>
-          </div>
         </SubNav>
       ) : (
         <FloatingPanel anchors={anchors} ref={ref}>
