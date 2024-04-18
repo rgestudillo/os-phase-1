@@ -23,12 +23,14 @@ export interface MonacoEditorProps {
   fileMetadata: Directory.FileMetadata;
   className?: string;
   onUnsavedChanges: (hasUnsavedChanges: boolean) => void; // New prop to notify parent about unsaved changes
+  transcript: string; // New prop for transcript
 }
 
 export function MonacoEditorWrapper({
   fileMetadata,
   className,
   onUnsavedChanges, // Destructure onUnsavedChanges from props
+  transcript,
 }: MonacoEditorProps) {
   const { fetchFile, updateContent, fileContent, fileStatus, saveAsNewFile } =
     useFileAdapter(fileMetadata);
@@ -68,6 +70,7 @@ export function MonacoEditorWrapper({
   };
 
   const handleSave = () => {
+    console.log("Saving: ", transcript);
     updateContent(editorValue);
     setInitialEditorValue(editorValue);
     setIsChanged(false);
@@ -147,6 +150,23 @@ export function MonacoEditorWrapper({
       }
     }
   }, [editorValue]);
+
+  useEffect(() => {
+    console.log("Went here: ", transcript);
+    if (transcript.toLowerCase() === "save as") {
+      handleSaveAs();
+    } else if (transcript.toLowerCase() === "save") {
+      handleSave();
+    } else if (transcript.toLowerCase() === "cut") {
+      handleCut();
+    } else if (transcript.toLowerCase() === "paste") {
+      handlePaste();
+    } else if (transcript.toLowerCase() === "redo") {
+      handleRedo();
+    } else if (transcript.toLowerCase() === "undo") {
+      handleUndo();
+    }
+  }, [transcript]);
 
   return (
     <div className={`${className || ""} ${style.container}`}>

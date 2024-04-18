@@ -12,11 +12,14 @@ import { SubNav } from "../../components/Nav/SubNav";
 import style from "./index.module.scss";
 // import { LexicalEditorWrapper } from '../../components/LexicalEditorWrapper'
 import { AboutAppWrapper } from "../../components/AboutAppWrapper";
-
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
 export function EditorPage() {
   const { parentId, folderId, fileId } = useParams();
+  const [command, setCommand] = useState("");
   let workspace: Pick<Directory.FolderMetadata, "parentId" | "id"> =
     Directory.RootNode;
 
@@ -31,42 +34,15 @@ export function EditorPage() {
     //   children: <LexicalEditorWrapper />,
     // }
   ]);
+
   const [activeFileKey, setActiveFileKey] = useState<string>();
   const [unsavedChangesArray, setUnsavedChangesArray] = useState<boolean[]>([]);
-  const [voiceCommand, setVoiceCommand] = useState("");
-  const handleVoiceCommand = (command: SetStateAction<string>) => {
-    // Set the voice command received
-    setVoiceCommand(command);
-  };
-
-  // useEffect to listen for changes in voiceCommand
-  useEffect(() => {
-    // Check if voiceCommand is "close" and there's an active file
-    if (voiceCommand.toLowerCase() === "close" && activeFileKey) {
-      // Call closeFile function to close the active file
-      closeFile(activeFileKey);
-    } else if (voiceCommand.toLowerCase() === "new file") {
-      handleNewFile();
-    } else if (voiceCommand.startsWith("open file")) {
-      const filename = voiceCommand.replace("open file ", "").trim();
-      let fileFound = false;
-      // Loop through folderContent to find the file with the specified filename
-      folderContent.forEach((node) => {
-        if (node.type === Directory.NodeType.file && node.name === filename) {
-          // Open the file
-          openFile(node);
-          fileFound = true;
-        }
-      });
-
-      // If the file was not found, show a prompt
-      if (!fileFound) {
-        alert(`File "${filename}" not found.`);
-      }
-    }
-    // Reset the voice command
-    setVoiceCommand("");
-  }, [voiceCommand, activeFileKey]);
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
   const handleNewFile = async () => {
     const filename = prompt("Enter File Name");
@@ -75,6 +51,7 @@ export function EditorPage() {
       openFile(file, false);
     }
   };
+
   const {
     fetchFolderMetadata,
     fetchFolderContent,
@@ -85,6 +62,107 @@ export function EditorPage() {
   } = useFolderAdapter(workspace);
   useEffect(fetchFolderMetadata, []);
   useEffect(fetchFolderContent, []);
+
+  useEffect(() => {
+    if (!listening) {
+      if (
+        (transcript.toLowerCase() === "save as" ||
+          transcript.toLowerCase() === "save us") &&
+        activeFileKey
+      ) {
+        handleCommand("save as");
+      } else if (
+        (transcript.toLowerCase() === "cut" ||
+          transcript.toLowerCase() === "cat") &&
+        activeFileKey
+      ) {
+        handleCommand("cut");
+      } else if (transcript.toLowerCase() === "paste" && activeFileKey) {
+        handleCommand("paste");
+      } else if (transcript.toLowerCase() === "undo" && activeFileKey) {
+        handleCommand("undo");
+      } else if (transcript.toLowerCase() === "redo" && activeFileKey) {
+        handleCommand("redo");
+      } else if (transcript.toLowerCase() === "save" && activeFileKey) {
+        handleCommand("save");
+      } else if (transcript.toLowerCase() === "close" && activeFileKey) {
+        // Call closeFile function to close the active file
+        closeFile(activeFileKey);
+      } else if (transcript.toLowerCase() === "new file") {
+        handleNewFile();
+      } else if (transcript.startsWith("open file")) {
+        const filename = transcript.replace("open file ", "").trim();
+        let fileFound = false;
+        // Loop through folderContent to find the file with the specified filename
+        folderContent.forEach((node) => {
+          if (node.type === Directory.NodeType.file && node.name === filename) {
+            // Open the file
+            openFile(node);
+            fileFound = true;
+          }
+        });
+
+        // If the file was not found, show a prompt
+        if (!fileFound) {
+          alert(`File "${filename}" not found.`);
+        }
+      }
+      // Reset t
+    }
+  }, [listening]);
+
+  const handleCommand = (transcript: string) => {
+    // Find the index of the file with activeFileKey
+    const fileIndex = files.findIndex((file) => file.key === activeFileKey);
+
+    // If the file with activeFileKey exists, update its state
+    if (fileIndex !== -1) {
+      // Create a new copy of the files array
+      const updatedFiles = [...files];
+      // Access the existing file object
+      const existingFile = updatedFiles[fileIndex];
+      let metadata;
+
+      // Find metadata for the existing file
+      folderContent.forEach((node) => {
+        if (
+          node.type === Directory.NodeType.file &&
+          node.id === existingFile.key
+        )
+          metadata = node;
+      });
+
+      const updatedArray = [...unsavedChangesArray];
+
+      if (metadata) {
+        console.log("Save command heard: ", metadata);
+        // Update the unsavedChangesArray for the specific file to indicate it has been saved
+        updatedArray[fileIndex] = false;
+
+        if (command == "save") {
+          setUnsavedChangesArray(updatedArray);
+        }
+
+        const updatedFile = {
+          ...existingFile,
+          children: (
+            <MonacoEditorWrapper
+              transcript={transcript}
+              fileMetadata={metadata}
+              onUnsavedChanges={(hasUnsavedChanges) => {
+                // Update the unsavedChangesArray with the new unsaved changes status
+                updatedArray[fileIndex] = hasUnsavedChanges;
+                setUnsavedChangesArray(updatedArray);
+              }}
+            />
+          ),
+        };
+        // Update the files state with the updated array
+        updatedFiles[fileIndex] = updatedFile;
+        setFiles(updatedFiles);
+      }
+    }
+  };
 
   const openFile = useMemo(
     () =>
@@ -106,6 +184,7 @@ export function EditorPage() {
               label: file.name,
               children: (
                 <MonacoEditorWrapper
+                  transcript={command}
                   fileMetadata={file}
                   onUnsavedChanges={(hasUnsavedChanges) => {
                     // Update the unsavedChangesArray with the new unsaved changes status
@@ -217,16 +296,18 @@ export function EditorPage() {
     <div className={style.container}>
       {windowWidth >= 800 ? (
         <SubNav title="DEBMAC's Editor" className={style.sideNav}>
-          <button onClick={() => handleVoiceCommand("close")}>
-            Simulate Close Command
-          </button>
-          <button onClick={() => handleVoiceCommand("new file")}>
-            Simulate Open Command
-          </button>
-          <button onClick={() => handleVoiceCommand("open file test.txt")}>
-            Simulate Open Command 32
-          </button>
           <SideExplorer workspace={folderMetadata} openFile={openFile} />
+          <div>
+            <p>Microphone: {listening ? "on" : "off"}</p>
+            <button onClick={() => SpeechRecognition.startListening()}>
+              Start
+            </button>
+            <button onClick={() => SpeechRecognition.stopListening()}>
+              Stop
+            </button>
+            <button onClick={() => resetTranscript()}>Reset</button>
+            <p>{transcript}</p>
+          </div>
         </SubNav>
       ) : (
         <FloatingPanel anchors={anchors} ref={ref}>
