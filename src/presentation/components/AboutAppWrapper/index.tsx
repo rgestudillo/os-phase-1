@@ -1,7 +1,7 @@
 import style from "./index.module.scss";
 import { ReactComponent as FilePadIcon } from "../../assets/filepad.svg";
 import Poster from "../../assets/og-image.webp";
-
+import Preview from "../../assets/preview.gif"; // Import the gift image
 export interface AboutAppWrapperProps {
   className?: string;
 }
@@ -25,6 +25,11 @@ export function AboutAppWrapper({ className }: AboutAppWrapperProps) {
         />
         <span>Honey OS - Phase 1: DEBMAC&apos;s File Explorer & Editor</span>
       </h1>
+      <img
+        src={Preview}
+        alt="Preview"
+        style={{ maxWidth: "min(600px, 95%)", marginBottom: "16px" }}
+      />
       <p style={{ maxWidth: "min(600px, 95%)" }}>
         This project encompasses the development of <strong>Honey OS</strong>,
         an operating system aimed at delivering a seamless computing experience.

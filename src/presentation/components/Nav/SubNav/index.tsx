@@ -1,10 +1,10 @@
-import { ReactNode } from 'react'
-import style from './index.module.scss'
+import { ReactNode } from "react";
+import style from "./index.module.scss";
 
 export interface SubNavProps {
-  children: ReactNode
-  title: string
-  className?: string
+  children: ReactNode;
+  title: string;
+  className?: string;
 }
 
 export function SubNav({ children, title, className }: SubNavProps) {
@@ -13,5 +13,5 @@ export function SubNav({ children, title, className }: SubNavProps) {
       <div className={style.header}>{title}</div>
       <div className={style.body}>{children}</div>
     </div>
-  )
+  );
 }
