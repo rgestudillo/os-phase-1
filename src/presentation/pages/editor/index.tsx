@@ -71,48 +71,62 @@ export function EditorPage() {
   useEffect(() => {
     if (!listening) {
       if (
-        (transcript.toLowerCase() === "save as" ||
-          transcript.toLowerCase() === "save us") &&
+        (transcript.toLowerCase() === "save as please" ||
+          transcript.toLowerCase() === "save us please") &&
         activeFileKey
       ) {
         handleCommand("save as");
       } else if (
-        (transcript.toLowerCase() === "cut" ||
-          transcript.toLowerCase() === "cat") &&
+        (transcript.toLowerCase() === "cut please" ||
+          transcript.toLowerCase() === "cat please") &&
         activeFileKey
       ) {
         handleCommand("cut");
-      } else if (transcript.toLowerCase() === "paste" && activeFileKey) {
+      } else if (transcript.toLowerCase() === "paste please" && activeFileKey) {
         handleCommand("paste");
-      } else if (transcript.toLowerCase() === "undo" && activeFileKey) {
+      } else if (transcript.toLowerCase() === "undo please" && activeFileKey) {
         handleCommand("undo");
-      } else if (transcript.toLowerCase() === "redo" && activeFileKey) {
+      } else if (transcript.toLowerCase() === "redo please" && activeFileKey) {
         handleCommand("redo");
-      } else if (transcript.toLowerCase() === "save" && activeFileKey) {
+      } else if (transcript.toLowerCase() === "save please" && activeFileKey) {
         handleCommand("save");
-      } else if (transcript.toLowerCase() === "close" && activeFileKey) {
+      } else if (transcript.toLowerCase() === "close please" && activeFileKey) {
         // Call closeFile function to close the active file
         closeFile(activeFileKey);
-      } else if (transcript.toLowerCase() === "new file") {
+      } else if (transcript.toLowerCase() === "new file please") {
         handleNewFile();
       } else if (transcript.startsWith("open file")) {
-        const filename = transcript.replace("open file ", "").trim();
-        let fileFound = false;
-        // Loop through folderContent to find the file with the specified filename
-        folderContent.forEach((node) => {
-          if (node.type === Directory.NodeType.file && node.name === filename) {
-            // Open the file
-            openFile(node);
-            fileFound = true;
-          }
-        });
+        const [filename] = transcript
+          .replace("open file", "") // Remove "open file"
+          .split("please") // Split at "please" to get filename
+          .map((part) => part.trim())
+          .filter(Boolean); // Remove empty strings
 
-        // If the file was not found, show a prompt
-        if (!fileFound) {
-          alert(`File "${filename}" not found.`);
+        if (filename) {
+          let fileFound = false;
+          // Loop through folderContent to find the file with the specified filename
+          folderContent.forEach((node) => {
+            if (
+              node.type === Directory.NodeType.file &&
+              node.name === filename
+            ) {
+              // Open the file
+              openFile(node);
+              fileFound = true;
+            }
+          });
+
+          // If the file was not found, show a prompt
+          if (!fileFound) {
+            alert(`File "${filename}" not found.`);
+          }
+        } else {
+          // Handle case where filename is not provided
+          alert("Please specify a filename.");
         }
+        // Reset transcript
+        resetTranscript();
       }
-      // Reset t
     }
   }, [listening]);
 

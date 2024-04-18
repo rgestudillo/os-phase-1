@@ -1,13 +1,17 @@
+import { useEffect, useState } from "react";
 import style from "./index.module.scss";
 import { NavLinkPersist } from "../../../supports/Persistence";
 import { FolderOutline, ContentOutline, VideoOutline } from "antd-mobile-icons";
 import Dictaphone from "../../VoiceToText/index";
-export interface SideNavProps {
-  className?: string;
-}
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+export interface SideNavProps {
+  className?: string;
+}
 
 export function SideNav({ className }: SideNavProps) {
   const {
@@ -16,6 +20,20 @@ export function SideNav({ className }: SideNavProps) {
     resetTranscript,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition();
+
+  const notify = () => toast(`Transcript is: ${transcript}`);
+
+  // Function to start listening and show transcript
+  const startListeningAndShowTranscript = () => {
+    SpeechRecognition.startListening();
+  };
+
+  // Listen for changes in listening state to trigger toast notification
+  useEffect(() => {
+    if (transcript) {
+      notify();
+    }
+  }, [listening]);
 
   return (
     <div className={`${className ?? ""} ${style.container}`}>
@@ -38,7 +56,7 @@ export function SideNav({ className }: SideNavProps) {
         <FolderOutline />
       </NavLinkPersist>
       <button
-        onClick={() => SpeechRecognition.startListening()}
+        onClick={startListeningAndShowTranscript}
         className={
           listening
             ? `${style.active} ${style.option}  ${style.button}`
@@ -47,8 +65,7 @@ export function SideNav({ className }: SideNavProps) {
       >
         <VideoOutline />
       </button>
-      {/* <NavLinkPersist to='/search' title='Search' className={({ isActive }) => isActive ? `${style.active} ${style.option}` : `${style.option}`}><SearchIcon /></NavLinkPersist> */}
-      {/* <NavLinkPersist to='/settings' title='Settings' className={({ isActive }) => isActive ? `${style.active} ${style.option}` : `${style.option}`}><SettingsGearIcon /></NavLinkPersist> */}
+      <ToastContainer />
     </div>
   );
 }

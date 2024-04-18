@@ -23,7 +23,7 @@ export function AboutAppWrapper({ className }: AboutAppWrapperProps) {
           height={44}
           style={{ float: "left", marginRight: "8px" }}
         />
-        <span>Honey OS: DEBMAC&apos;s File Explorer & Editor</span>
+        <span>Honey OS - Phase 1: DEBMAC&apos;s File Explorer & Editor</span>
       </h1>
       <p style={{ maxWidth: "min(600px, 95%)" }}>
         This project encompasses the development of <strong>Honey OS</strong>,
