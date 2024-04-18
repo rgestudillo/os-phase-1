@@ -51,8 +51,8 @@ export function AboutAppWrapper({ className }: AboutAppWrapperProps) {
       <h3>Features:</h3>
       <ul style={{ listStyle: "none" }}>
         <li>
-          <span style={{ userSelect: "none" }}>☑️ </span>Voice Actived Smart
-          File MAnagement
+          <span style={{ userSelect: "none" }}>☑️ </span>Voice Activated Smart
+          File Management
         </li>
         <li>
           <span style={{ userSelect: "none" }}>☑️ </span>Create New Folder and
