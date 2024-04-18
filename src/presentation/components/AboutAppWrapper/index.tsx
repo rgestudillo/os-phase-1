@@ -99,11 +99,12 @@ export function AboutAppWrapper({ className }: AboutAppWrapperProps) {
       </ul>
       <h3>Authors:</h3>
       <ul style={{ listStyle: "none" }}>
-        <li>Abrau, Lizter Angelo</li>
-        <li>Barina, Kenz Jehu</li>
-        <li>Canete, Chris Loui</li>
-        <li>Estudillo, Refino Kashi Kyle </li>
         <li>Dela Fuente, Wince</li>
+        <li>Estudillo, Refino Kashi Kyle </li>
+        <li>Barina, Kenz Jehu</li>
+        <li className={style.strikethrough}>Mojado, John Elias</li>
+        <li>Abrau, Lizter Angelo</li>
+        <li>Canete, Chris Loui</li>
       </ul>
     </div>
   );
