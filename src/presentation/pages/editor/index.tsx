@@ -82,7 +82,11 @@ export function EditorPage() {
         activeFileKey
       ) {
         handleCommand("cut");
-      } else if (transcript.toLowerCase() === "paste please" && activeFileKey) {
+      } else if (
+        (transcript.toLowerCase() === "paste please" ||
+          transcript.toLowerCase() === "face please") &&
+        activeFileKey
+      ) {
         handleCommand("paste");
       } else if (transcript.toLowerCase() === "undo please" && activeFileKey) {
         handleCommand("undo");
@@ -95,7 +99,10 @@ export function EditorPage() {
         closeFile(activeFileKey);
       } else if (transcript.toLowerCase() === "new file please") {
         handleNewFile();
-      } else if (transcript.startsWith("open file")) {
+      } else if (
+        transcript.startsWith("open file") &&
+        transcript.includes("please")
+      ) {
         const [filename] = transcript
           .replace("open file", "") // Remove "open file"
           .split("please") // Split at "please" to get filename
@@ -108,7 +115,7 @@ export function EditorPage() {
           folderContent.forEach((node) => {
             if (
               node.type === Directory.NodeType.file &&
-              node.name === filename
+              node.name.toLowerCase() === filename.toLowerCase()
             ) {
               // Open the file
               openFile(node);
@@ -187,7 +194,7 @@ export function EditorPage() {
     () =>
       (file: Directory.FileMetadata, dynamicPosition = true) => {
         const targetIndex = files.findIndex((pane) => pane.key === file.id);
-
+        console.log("opening file: ", file);
         if (targetIndex === -1) {
           // open file next to current active file
           let activeIndex = files.findIndex(

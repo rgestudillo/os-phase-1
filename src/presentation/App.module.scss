@@ -28,3 +28,29 @@
     z-index: 1000;
   }
 }
+.customButton {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  margin: 1.25rem; 
+  padding: 0.75rem; 
+  color: black;
+  border-radius: 0.25rem; 
+  transition: background-color 0.3s ease; /* Adding transition for background-color change */
+}
+
+.customButton:hover {
+  background-color: #ccc; /* Change to the desired hover background color */
+}
+
+.customContainer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

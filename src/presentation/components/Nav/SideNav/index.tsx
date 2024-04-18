@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import style from "./index.module.scss";
 import { NavLinkPersist } from "../../../supports/Persistence";
-import { FolderOutline, ContentOutline, VideoOutline } from "antd-mobile-icons";
+import { FolderOutline, ContentOutline, AudioOutline } from "antd-mobile-icons";
 import Dictaphone from "../../VoiceToText/index";
 import SpeechRecognition, {
   useSpeechRecognition,
@@ -35,6 +35,21 @@ export function SideNav({ className }: SideNavProps) {
     }
   }, [listening]);
 
+  // Handle keyboard shortcut Ctrl + `
+  const handleKeyDown = (event: { ctrlKey: any; key: string }) => {
+    if (event.ctrlKey && event.key === "`") {
+      startListeningAndShowTranscript();
+    }
+  };
+
+  // Add event listener for keydown events
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // Empty dependency array to ensure the effect runs only once
+
   return (
     <div className={`${className ?? ""} ${style.container}`}>
       <NavLinkPersist
@@ -59,11 +74,11 @@ export function SideNav({ className }: SideNavProps) {
         onClick={startListeningAndShowTranscript}
         className={
           listening
-            ? `${style.active} ${style.option}  ${style.button}`
+            ? `${style.listenActive} ${style.option}  ${style.button}`
             : `${style.option} ${style.button} `
         }
       >
-        <VideoOutline />
+        <AudioOutline />
       </button>
       <ToastContainer />
     </div>

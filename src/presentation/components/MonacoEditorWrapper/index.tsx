@@ -39,7 +39,7 @@ export function MonacoEditorWrapper({
   const [isChanged, setIsChanged] = useState(false);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [isRedoEnabled, setIsRedoEnabled] = useState(false);
-
+  const [isSavedAsEnabled, setIsSavedAsEnabled] = useState(true);
   const editorRef = useRef<any>(null);
 
   useEffect(() => {
@@ -67,6 +67,7 @@ export function MonacoEditorWrapper({
 
   const handleChange: OnChange = (value) => {
     setEditorValue(value || "");
+    setIsSavedAsEnabled(false);
   };
 
   const handleSave = () => {
@@ -184,7 +185,7 @@ export function MonacoEditorWrapper({
             <button
               onClick={handleSaveAs}
               className={`${style.saveButton}`}
-              disabled={!isChanged}
+              disabled={isSavedAsEnabled}
             >
               <FontAwesomeIcon icon={faSave} />
               Save as
