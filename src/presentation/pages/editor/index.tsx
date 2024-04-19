@@ -15,6 +15,9 @@ import { AboutAppWrapper } from "../../components/AboutAppWrapper";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
 export function EditorPage() {
@@ -40,6 +43,33 @@ export function EditorPage() {
     // }
   ]);
 
+  const [textAreaValue, setTextAreaValue] = useState('');
+  // Function to handle changes in textarea
+  const handleTextAreaChange = (event: { target: { value: SetStateAction<string>; }; }) => {
+    setTextAreaValue(event.target.value);
+  };
+  const [showInput, setShowInput] = useState(false);
+  const handleSaveInput =  async () => {
+    if (textAreaValue) {
+      const file = await createFile({ name: textAreaValue });
+      openFile(file, false);
+    }
+    setTextAreaValue("");
+    setShowInput(false);
+  };
+  const handleCloseInput =  () => {
+    setShowInput(false);
+  };
+
+  function speak(text: string | undefined) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.error("Speech synthesis not supported in this browser.");
+    }
+  }
+  
   const [activeFileKey, setActiveFileKey] = useState<string>();
   const [unsavedChangesArray, setUnsavedChangesArray] = useState<boolean[]>([]);
   const {
@@ -50,11 +80,9 @@ export function EditorPage() {
   } = useSpeechRecognition();
 
   const handleNewFile = async () => {
-    const filename = prompt("Enter File Name");
-    if (filename) {
-      const file = await createFile({ name: filename });
-      openFile(file, false);
-    }
+    speak("Please give me your desired filename");
+    setShowInput(true);
+    SpeechRecognition.startListening();
   };
 
   const {
@@ -70,7 +98,18 @@ export function EditorPage() {
 
   useEffect(() => {
     if (!listening) {
-      if (
+      if (transcript.toLowerCase() == "save changes please"){
+        handleSaveInput();
+      }else if (transcript.toLowerCase().startsWith("file name is")){
+        const prefix = "file name is ";
+        const extractedFileName = transcript.slice(prefix.length).trim();
+        setTextAreaValue(extractedFileName);
+        SpeechRecognition.startListening();
+      }else if (transcript.toLowerCase() == "yes please"){
+        handleModalConfirm();
+      }else if(transcript.toLowerCase() == "no please"){
+        handleModalCancel();
+      }else if (
         (transcript.toLowerCase() === "save as please" ||
           transcript.toLowerCase() === "save us please") &&
         activeFileKey
@@ -249,22 +288,23 @@ export function EditorPage() {
       },
     [files, activeFileKey, unsavedChangesArray]
   );
+  const [fileToClose, setFileToClose] = useState(null as unknown as TargetKey);
+  const [showModal, setShowModal] = useState(false);
+  const handleModalCancel = () => {
+    setShowModal(false);
+  }
 
+
+  const handleModalConfirm = () => {
+    closeFile(fileToClose);
+    setShowModal(false);
+  }
   const closeFile = useMemo(
     () => (targetKey: TargetKey) => {
       const targetIndex = files.findIndex((pane) => pane.key === targetKey);
-      const fileToClose = files[targetIndex];
+
       const newPanes = files.filter((pane) => pane.key !== targetKey);
-
-      if (unsavedChangesArray[targetIndex]) {
-        const confirmClose = window.confirm(
-          "You have unsaved changes. Are you sure you want to close the file?"
-        );
-        if (!confirmClose) {
-          return;
-        }
-      }
-
+      
       if (newPanes.length && targetKey === targetKey) {
         const { key } =
           newPanes[
@@ -300,13 +340,17 @@ export function EditorPage() {
 
   const onEdit = async (targetKey: TargetKey, action: "add" | "remove") => {
     if (action === "add") {
-      const filename = prompt("Enter File Name");
-      if (filename) {
-        const file = await createFile({ name: filename });
-        openFile(file, false);
-      }
+      handleNewFile();
     } else {
-      closeFile(targetKey);
+      const targetIndex = files.findIndex((pane) => pane.key === targetKey);
+      setFileToClose(targetKey);
+      if (unsavedChangesArray[targetIndex]) {
+        speak("You have unsaved changes. Are you sure you want to close the file?");
+        SpeechRecognition.startListening();
+        setShowModal(true);
+      }else{
+        closeFile(targetKey);
+      }
     }
   };
 
@@ -320,6 +364,45 @@ export function EditorPage() {
 
   return (
     <div className={style.container}>
+      <Modal show={showInput} onHide={handleCloseInput}>
+        <Modal.Header closeButton>
+          <Modal.Title>File Name</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group
+              className="mb-3"
+              controlId="exampleForm.ControlTextarea1"
+            >
+              <Form.Control as="textarea" rows={1} value={textAreaValue} onChange={handleTextAreaChange}/>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseInput}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleSaveInput}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      <Modal show={showModal} onHide={handleModalCancel}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          You have unsaved changes. Are you sure you want to close the file?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalCancel}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleModalConfirm}>
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>;
       {windowWidth >= 800 ? (
         <SubNav title="DEBMAC's Editor" className={style.sideNav}>
           <SideExplorer workspace={folderMetadata} openFile={openFile} />

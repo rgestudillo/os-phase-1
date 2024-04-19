@@ -8,6 +8,7 @@ import "antd/dist/reset.css";
 import { useWindowSize } from "react-use";
 import { useEffect, useState } from "react";
 import Preloader from "./Preloader";
+import 'bootstrap/dist/css/bootstrap.min.css';
 // import {
 //   AppOutline,
 //   MessageOutline,
